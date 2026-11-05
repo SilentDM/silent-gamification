@@ -15,7 +15,7 @@ import flet_charts as fch
 import ai_gemini
 import ai_weekly
 import analytics as an
-from ui_helpers import update_ui
+from ui_helpers import update_ui, dark_tooltips
 import database as db
 from i18n import tr, trn, day_short, fmt_short, month_short
 
@@ -242,7 +242,7 @@ class GraphsView(ft.Column):
         per = tr("Average per week") if an.uses_weeks(key) else tr("Average per day")
         sub = per + tr(" • latest {latest} • period average {avg} • dashed line = goal {goal}",
                        latest=f"{latest:.1f}", avg=f"{sum(values) / len(values):.1f}", goal=f"{target:g}")
-        return card(tr("Daily score trend"), sub, ft.Container(content=chart, height=230))
+        return card(tr("Daily score trend"), sub, ft.Container(content=dark_tooltips(chart), height=230))
 
     # ------------------------------------------------------------ mood (from the Diary)
     def _mood_card(self, key, today):
@@ -283,7 +283,7 @@ class GraphsView(ft.Column):
                       "From the Diary • average per week • {n} weeks with a mood", len(values))
         else:
             sub = trn("From the Diary • {n} day with a mood", "From the Diary • {n} days with a mood", len(values))
-        return card(tr("Mood"), sub, ft.Column([ft.Container(content=chart, height=200), tiles], spacing=12))
+        return card(tr("Mood"), sub, ft.Column([ft.Container(content=dark_tooltips(chart), height=200), tiles], spacing=12))
 
     # ------------------------------------------------------------ habit heatmap
     def _heatmap_card(self, key, today):
@@ -358,7 +358,7 @@ class GraphsView(ft.Column):
             worst = min(scored, key=lambda x: x[1])
             sub += tr(" • strongest {best} ({best_avg}) • lightest {worst} ({worst_avg})", best=best[0],
                       best_avg=f"{best[1]:.1f}", worst=worst[0], worst_avg=f"{worst[1]:.1f}")
-        return card(tr("Weekday pattern"), sub, ft.Container(content=chart, height=220), expand=True)
+        return card(tr("Weekday pattern"), sub, ft.Container(content=dark_tooltips(chart), height=220), expand=True)
 
     # ------------------------------------------------------------ year map
     def _year_card(self, today):
@@ -426,7 +426,7 @@ class GraphsView(ft.Column):
                          ft.Text(tr("net loss (low habit days)"), size=11, color=INK_2)], spacing=4)
         total = sum(values)
         return card(tr("XP per week"), tr("Net XP from every source • {xp} XP in these weeks", xp=f"{total:+.0f}"),
-                    ft.Column([ft.Container(content=chart, height=220), legend], spacing=8))
+                    ft.Column([ft.Container(content=dark_tooltips(chart), height=220), legend], spacing=8))
 
     # ------------------------------------------------------------ studies & quests
     def _study_quest_card(self, weeks):
@@ -474,10 +474,10 @@ class GraphsView(ft.Column):
         total_q = sum(w["quests"] for w in weeks)
         return ft.Container(content=ft.Row([
             card(tr("Study time per week"), tr("{time} logged in your study journal", time=fmt_minutes(total_h)),
-                 ft.Container(content=study, height=200), expand=True),
+                 ft.Container(content=dark_tooltips(study), height=200), expand=True),
             card(tr("Reviews & quests per week"),
                  tr("{reviews} review(s) • {quests} quest(s) completed", reviews=total_r, quests=total_q),
-                 ft.Column([ft.Container(content=counts, height=200), legend], spacing=8), expand=True),
+                 ft.Column([ft.Container(content=dark_tooltips(counts), height=200), legend], spacing=8), expand=True),
         ], spacing=14, vertical_alignment=ft.CrossAxisAlignment.START))
 
 

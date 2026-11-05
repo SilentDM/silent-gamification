@@ -31,6 +31,30 @@ def wake_ui(page: ft.Page):
         pass  # loop closed (app quitting)
 
 
+TOOLTIP_BG = "#1c2028"  # dark card behind chart values (the library default is a light grey)
+TOOLTIP_TEXT = ft.TextStyle(color=ft.Colors.WHITE, size=12, weight=ft.FontWeight.W_500)
+
+
+def dark_tooltips(chart):
+    """Readable chart tooltips: dark background, white text (by default the text took the bar/line color
+    on a light grey box — bright green on grey was nearly unreadable). Returns the chart."""
+    import flet_charts as fch
+    radius = ft.BorderRadius.all(6)
+    if isinstance(chart, fch.BarChart):
+        chart.tooltip = fch.BarChartTooltip(bgcolor=TOOLTIP_BG, border_radius=radius)
+        for group in chart.groups or []:
+            for rod in group.rods or []:
+                if isinstance(rod.tooltip, str):
+                    rod.tooltip = fch.BarChartRodTooltip(text=rod.tooltip, text_style=TOOLTIP_TEXT)
+    elif isinstance(chart, fch.LineChart):
+        chart.tooltip = fch.LineChartTooltip(bgcolor=TOOLTIP_BG, border_radius=radius, max_width=240)
+        for series in chart.data_series or []:
+            for point in series.points or []:
+                if isinstance(point.tooltip, str):
+                    point.tooltip = fch.LineChartDataPointTooltip(text=point.tooltip, text_style=TOOLTIP_TEXT)
+    return chart
+
+
 def update_ui(page: ft.Page):
     """page.update() that also works from background threads (see wake_ui)."""
     page.update()

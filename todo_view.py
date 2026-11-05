@@ -9,7 +9,7 @@ import ai_gemini
 import database as db
 from constants import QUEST_TYPES, QUEST_DIFFICULTY_XP, QUEST_REPEATS, XP_SUBQUEST, XP_QUEST_LOG
 from i18n import tr, trn, day_short
-from ui_helpers import confirm_action, update_ui
+from ui_helpers import confirm_action, update_ui, dark_tooltips
 from wallpaper import request_wallpaper_update as update_desktop_wallpaper
 
 TYPE_STYLE = {
@@ -619,7 +619,7 @@ class TodoView(ft.Row):
         ], spacing=12)
         controls = [summary]
         if values:
-            controls.append(ft.Container(content=self._metric_chart(q, values), height=170))
+            controls.append(ft.Container(content=dark_tooltips(self._metric_chart(q, values)), height=170))
         else:
             controls.append(ft.Text(tr("Log your first value below to start the chart."), size=12, color=ft.Colors.GREY_500))
         if q["status"] != "Complete":
