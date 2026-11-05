@@ -99,6 +99,12 @@ def restore_window_from_tray(page: ft.Page):
     page.update()
 
 def create_tray_icon_image():
+    icon = Path(__file__).resolve().parent / "assets" / "icon.ico"
+    try:  # the same picture as the desktop shortcut and the window
+        with Image.open(icon) as ico:
+            return ico.convert("RGBA").resize((64, 64), Image.LANCZOS)
+    except Exception:
+        pass
     img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     draw.rounded_rectangle([4, 4, 60, 60], radius=12, fill=(18, 22, 30, 255), outline=(0, 220, 255, 255), width=3)

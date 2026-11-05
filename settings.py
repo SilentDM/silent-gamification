@@ -155,10 +155,11 @@ def set_start_with_windows(on: bool) -> str:
     ps = (
         "$s=(New-Object -ComObject WScript.Shell).CreateShortcut($env:LNK);"
         "$s.TargetPath=$env:TARGET;$s.Arguments='\"' + $env:MAINPY + '\"';"
-        "$s.WorkingDirectory=$env:WORKDIR;$s.Save()"
+        "$s.WorkingDirectory=$env:WORKDIR;if ($env:ICON) { $s.IconLocation=$env:ICON + ',0' };$s.Save()"
     )
     env = {**os.environ, "LNK": str(link), "TARGET": str(target), "MAINPY": str(project / "main.py"),
-           "WORKDIR": str(project)}
+           "WORKDIR": str(project),
+           "ICON": str(project / "assets" / "icon.ico") if (project / "assets" / "icon.ico").exists() else ""}
     try:
         link.parent.mkdir(parents=True, exist_ok=True)
         result = subprocess.run(["powershell", "-NoProfile", "-Command", ps], env=env, capture_output=True,
