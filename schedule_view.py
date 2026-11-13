@@ -78,16 +78,18 @@ class ScheduleView(ft.Column):
     def update_gamification_stats(self):
         """Updates the Streak, Level (1-100), and XP progress."""
         streak = db.get_current_streak()
-        total_xp, level, xp_in_level, rank_title = db.get_user_xp_and_level()
+        lv = db.get_level()
 
         self.streak_text.value = trn("{n} Day Streak", "{n} Days Streak", streak)
-        self.level_text.value = tr("Level {level} / 100 • {rank}", level=level, rank=tr(rank_title))
-        self.xp_bar.value = min(xp_in_level / 10.0, 1.0)
-        if level >= 100:
-            self.xp_fraction_text.value = tr("MAX LEVEL REACHED! (1,000 XP)")
-        else:
-            self.xp_fraction_text.value = tr("{xp} / 10 XP to Lvl {next} (Total: {total} / 1000)",
-                                             xp=f"{xp_in_level:.1f}", next=level + 1, total=f"{total_xp:.1f}")
+        self.level_text.value = tr("Level {level} / 100 • {rank}", level=lv["level"], rank=tr(lv["rank"]))
+        self.xp_bar.value = lv["progress"]
+        self.xp_fraction_text.value = tr("Last 100 days: habits {habits} + extras {extras}",
+                                         habits=f"{lv['habit_points']:.1f}", extras=f"{lv['extra_points']:.1f}")
+        self.xp_fraction_text.tooltip = tr(
+            "The level only looks at the last 100 days. Habits: your average daily score x 10 (a day without "
+            "answers counts as 0; rest-only days don't count). Extras: XP from studies, quests, events and "
+            "the diary, worth 1 point per 10 XP and fading to zero over 100 days. Lifetime XP: {total}.",
+            total=f"{lv['total_xp']:.0f}")
 
     def calculate_daily_scores(self):
         self._sync_week()

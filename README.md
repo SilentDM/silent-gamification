@@ -46,13 +46,16 @@ Transform your daily routines, health habits, and study schedules into an RPG-li
 
 ### 🔥 2. Gamification System
 * **Streak Counter (🔥):** Tracks consecutive days maintaining a daily average score $\ge 7.0$.
-* **XP Ledger:** Every XP gain is recorded once in an immutable ledger, so your level never shifts retroactively:
+* **XP Ledger:** Every XP gain is recorded once in an immutable ledger (your lifetime XP and the weekly XP charts):
   * **Habit day:** `(daily average − 5) × 2` (a bad day costs XP, a perfect day gives +10).
   * **Quest completed:** by difficulty — Easy +10 · Normal +15 · Hard +30 · Epic +60 XP (repeatable quests: once per week/month).
   * **Subquest checked:** +2 XP · **Quest log:** +2 XP for the first real entry of the day per quest.
   * **Study chapter mastered:** +15 XP · **Calendar event done:** +10 XP.
   * **Study journal:** +2 XP for the first real entry (20+ characters) of the day per chapter · **Study review:** +5 XP each.
-* **Levels 1–100:** One level every 10 XP, max level at 1,000 XP.
+* **Levels 1–100 — only the last 100 days count**, so the level goes down when you drift away and back up when you return:
+  * **Habits:** your average daily score over the last 100 days × 10 (an average of 7 ≈ level 70). A day with no answers counts as 0; a day where every answer is Rest doesn't count; today counts once you mark something.
+  * **Extras:** XP from studies, quests, events, reviews and the diary adds 1 point per 10 XP, fading in a straight line to zero over 100 days (+10 XP is worth 1 point today, 0.5 in 50 days, nothing after 100).
+  * The Schedule banner and the HUD show both parts; Telegram celebrates new level **records**.
 * **Rank Titles:** **Novice** $\rightarrow$ **Apprentice** (16) $\rightarrow$ **Disciplined** (36) $\rightarrow$ **Elite** (61) $\rightarrow$ **Master** (81) $\rightarrow$ **Centurion** (100).
 
 ### 📊 3. Graphs

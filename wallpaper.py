@@ -190,7 +190,8 @@ def _gather():
             data[key] = default
 
     safe("streak", db.get_current_streak, 0)
-    safe("xp", db.get_user_xp_and_level, (0.0, 1, 0.0, "Novice"))
+    safe("level", db.get_level, {"score": 0.0, "level": 1, "progress": 0.0, "rank": "Novice",
+                                  "habit_points": 0.0, "extra_points": 0.0, "habit_avg": 0.0, "total_xp": 0.0})
 
     def today_avg():
         year, week, today_idx = db.get_current_week_info()
@@ -296,19 +297,19 @@ def _block(ctx, bid, data, width):
         return int(32 * s), draw
 
     if bid == "xp":
-        total_xp, level, xp_in_level, _ = data.get("xp") or (0.0, 1, 0.0, "")
+        lv = data["level"]
 
         def draw(d, x, y, w):
             bar_h = max(6, int(8 * s))
             d.rounded_rectangle([x, y + int(4 * s), x + w, y + int(4 * s) + bar_h], radius=bar_h // 2,
                                 fill=(40, 45, 55, 255))
-            fill_w = int(w * min(1.0, xp_in_level / 10.0))
+            fill_w = int(w * min(1.0, lv["progress"]))
             if fill_w > 0:
                 d.rounded_rectangle([x, y + int(4 * s), x + fill_w, y + int(4 * s) + bar_h], radius=bar_h // 2,
                                     fill=ctx.accent["bar"])
-            d.text((x, y + int(18 * s)), tr("{xp} / 10 XP to Level {next} (Total: {total}/1000)",
-                                            xp=f"{xp_in_level:.1f}", next=min(100, level + 1),
-                                            total=f"{total_xp:.1f}"), fill=(160, 170, 185, 255), font=ctx.small)
+            d.text((x, y + int(18 * s)), tr("Last 100 days: habits {habits} + extras {extras}",
+                                            habits=f"{lv['habit_points']:.1f}", extras=f"{lv['extra_points']:.1f}"),
+                   fill=(160, 170, 185, 255), font=ctx.small)
 
         return int(42 * s), draw
 
@@ -405,7 +406,7 @@ def build_hud_image(settings=None, screen=None):
     d = ImageDraw.Draw(overlay)
     d.rounded_rectangle([x1, y1, x1 + card_w, y1 + card_h], radius=int(16 * scale), fill=(18, 22, 30, 225),
                         outline=accent["border"], width=max(2, int(2 * scale)))
-    total_xp, level, _, rank = data.get("xp") or (0.0, 1, 0.0, "Novice")
+    level, rank = data["level"]["level"], data["level"]["rank"]
     d.text((x1 + ctx.pad, y1 + int(18 * scale)), tr("DAILY GAMIFICATION HUD"), fill=accent["header"], font=ctx.sub)
     d.text((x1 + ctx.pad, y1 + int(38 * scale)), tr("Level {level} / 100 • {rank}", level=level, rank=tr(rank)),
            fill=(255, 255, 255, 255),

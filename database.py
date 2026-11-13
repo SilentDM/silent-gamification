@@ -348,21 +348,87 @@ def get_current_week_logs(year: int, week: int):
     return logs
 
 # --- Gamification Calculations (All 5 Discipline Sources) ---
-def get_user_xp_and_level():
-    """Total XP is the sum of the XP ledger (history is immutable), capped at 1000."""
+LEVEL_WINDOW_DAYS = 100
+
+
+def _answers_by_day(start: date, end: date) -> dict:
+    """{date: ([scores], [rest statuses])} for active habits answered between start and end."""
     conn = get_connection()
-    total = conn.execute("SELECT COALESCE(SUM(amount), 0) FROM xp_ledger").fetchone()[0] or 0.0
+    rows = conn.execute("""
+        SELECT l.year, l.week_number, l.day_of_week, l.status, l.score
+        FROM daily_logs l JOIN activities a ON a.id = l.activity_id
+        WHERE a.active = 1 AND (l.score IS NOT NULL OR l.status = ?)
+          AND l.year BETWEEN ? AND ?
+    """, (REST_STATUS, start.isocalendar()[0], end.isocalendar()[0])).fetchall()
     conn.close()
+    per_day = {}
+    for y, w, d, status, score in rows:
+        try:
+            day = date.fromisocalendar(y, w, d + 1)
+        except ValueError:
+            continue
+        if not start <= day <= end:
+            continue
+        scores, rests = per_day.setdefault(day, ([], []))
+        if score is not None:
+            scores.append(score)
+        else:
+            rests.append(status)
+    return per_day
 
-    total_xp = max(0.0, min(1000.0, float(total)))
-    if total_xp >= 1000.0:
-        level = 100
-        xp_in_level = 10.0
-    else:
-        level = max(1, int(total_xp // 10) + 1)
-        xp_in_level = total_xp % 10.0
 
-    return total_xp, level, xp_in_level, get_rank_title(level)
+def get_level(today: date = None) -> dict:
+    """The level (1-100) reflects only the last LEVEL_WINDOW_DAYS (100) days — nothing is kept forever:
+
+    - habits: average daily score over the window x 10 (an average of 7 = 70 points). A day with no answer
+      counts as 0 and pulls it down; a day where every answer is Rest is neutral (left out); today only
+      counts once something is marked (the day is still open);
+    - extras (studies, quests, events, reviews, diary…): 10 XP = 1 point on the day it is earned, fading in a
+      straight line to 0 after 100 days (+10 XP is worth 1 point today, 0.5 in 50 days, nothing after 100).
+
+    score = habits + extras (0-100); level = the whole part (at least 1). The XP total is still kept as a
+    lifetime counter, but it no longer sets the level."""
+    today = today or date.today()
+    start = today - timedelta(days=LEVEL_WINDOW_DAYS - 1)
+    per_day = _answers_by_day(start, today)
+    window = LEVEL_WINDOW_DAYS
+    habit_sum = 0.0
+    for day, (scores, rests) in per_day.items():
+        if scores:
+            habit_sum += sum(scores) / len(scores)
+        elif rests:
+            window -= 1  # a rest-only day is neutral
+    if not per_day.get(today, ([], []))[0] and not per_day.get(today, ([], []))[1]:
+        window -= 1      # today is still open: no answer yet doesn't count against you
+    habit_avg = habit_sum / window if window > 0 else 0.0
+    habit_points = habit_avg * 10.0
+
+    conn = get_connection()
+    rows = conn.execute("SELECT event_date, amount FROM xp_ledger WHERE source != 'habit_day' AND event_date >= ?",
+                        (start.isoformat(),)).fetchall()
+    total_xp = conn.execute("SELECT COALESCE(SUM(amount), 0) FROM xp_ledger").fetchone()[0] or 0.0
+    conn.close()
+    extra_xp = 0.0
+    for d, amount in rows:
+        try:
+            age = (today - date.fromisoformat(d)).days
+        except ValueError:
+            continue
+        if 0 <= age < LEVEL_WINDOW_DAYS:
+            extra_xp += amount * (LEVEL_WINDOW_DAYS - age) / LEVEL_WINDOW_DAYS
+    extra_points = extra_xp / 10.0
+
+    score = max(0.0, min(100.0, habit_points + extra_points))
+    level = max(1, min(100, int(score)))
+    return {"score": score, "level": level, "progress": 1.0 if level >= 100 else score - int(score),
+            "rank": get_rank_title(level), "habit_points": habit_points, "extra_points": extra_points,
+            "habit_avg": habit_avg, "total_xp": float(total_xp)}
+
+
+def get_user_xp_and_level():
+    """(lifetime XP, level, progress to the next level in tenths, rank). See get_level()."""
+    lv = get_level()
+    return lv["total_xp"], lv["level"], lv["progress"] * 10.0, lv["rank"]
 
 def streak_days():
     """{date: True/False} — whether each answered day counts towards the streak: a daily average of

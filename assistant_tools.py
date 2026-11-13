@@ -110,7 +110,7 @@ def get_today_overview() -> dict:
         habits.append({"habit": name, "vice": bool(neg), "answer": None if status == "-" else status,
                        "score": score})
     scored = [h["score"] for h in habits if h["score"] is not None]
-    total_xp, level, xp_in_level, rank = db.get_user_xp_and_level()
+    lv = db.get_level()
     events = []
     done = db.get_completed_events(today.isoformat(), today.isoformat())
     for o in db.get_events_for_date(today):
@@ -122,7 +122,10 @@ def get_today_overview() -> dict:
         "daily_score": round(sum(scored) / len(scored), 1) if scored else None,
         "unanswered": [h["habit"] for h in habits if h["answer"] is None],
         "streak_days": db.get_current_streak(),
-        "level": level, "rank": rank, "total_xp": round(total_xp, 1),
+        "level": lv["level"], "rank": lv["rank"],
+        "level_explained": "level = last 100 days only: habit average x 10 + extras fading over 100 days",
+        "level_habit_points": round(lv["habit_points"], 1), "level_extra_points": round(lv["extra_points"], 1),
+        "lifetime_xp": round(lv["total_xp"], 1),
         "events_today": events,
         "study_reviews_due": [r["topic"] for r in db.get_pending_reviews(until=today)],
         "documents_needing_attention": [{"title": t, "type": ty, "days_left": d}

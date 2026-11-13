@@ -132,8 +132,6 @@ PT.update({
 PT.update({
     "{n} Day Streak": "{n} dia seguido", "{n} Days Streak": "{n} dias seguidos",
     "Level {level} / 100 • {rank}": "Nível {level} / 100 • {rank}",
-    "MAX LEVEL REACHED! (1,000 XP)": "NÍVEL MÁXIMO ALCANÇADO! (1.000 XP)",
-    "{xp} / 10 XP to Lvl {next} (Total: {total} / 1000)": "{xp} / 10 XP para o nível {next} (Total: {total} / 1000)",
     "Exported to Desktop!": "Exportado para a Área de Trabalho!",
     "Name": "Nome", "Category": "Categoria", "Edit habit": "Editar hábito",
     "Vice / bad habit (inverted scoring)": "Vício / mau hábito (pontuação invertida)",
@@ -579,7 +577,6 @@ PT.update({
     "UPCOMING CALENDAR:": "PRÓXIMOS COMPROMISSOS:", "DOCUMENT ALERTS:": "ALERTAS DE DOCUMENTOS:",
     "NO ENTRIES YET": "SEM REGISTROS AINDA", "Today: - / 10": "Hoje: - / 10", "PASSING": "NA META",
     "STREAK: {n} day": "SEQUÊNCIA: {n} dia", "STREAK: {n} days": "SEQUÊNCIA: {n} dias",
-    "{xp} / 10 XP to Level {next} (Total: {total}/1000)": "{xp} / 10 XP para o nível {next} (Total: {total}/1000)",
     "NEUTRAL": "NEUTRO", "NEEDS FOCUS": "PRECISA DE FOCO", "All quests completed!": "Todas as missões concluídas!",
     "No active chapters right now.": "Nenhum capítulo em andamento agora.", "REVIEW DUE ({n}): ": "REVISÃO PENDENTE ({n}): ",
     "EXPIRED {n}d ago": "VENCEU há {n}d", "expires in {n}d": "vence em {n}d",
@@ -805,4 +802,13 @@ PT.update({
     "the bot": "o bot",
     "Running. Send  /start {code}  to {bot} to pair your Telegram.":
         "Rodando. Envie  /start {code}  para {bot} para conectar seu Telegram.",
+})
+
+# ------------------------------------------------------------------ level (last 100 days)
+PT.update({
+    "Last 100 days: habits {habits} + extras {extras}": "Últimos 100 dias: hábitos {habits} + extras {extras}",
+    "The level only looks at the last 100 days. Habits: your average daily score x 10 (a day without answers counts as 0; rest-only days don't count). Extras: XP from studies, quests, events and the diary, worth 1 point per 10 XP and fading to zero over 100 days. Lifetime XP: {total}.":
+        "O nível só olha os últimos 100 dias. Hábitos: sua nota média diária × 10 (dia sem resposta conta como 0; "
+        "dias só de descanso não contam). Extras: XP de estudos, missões, eventos e do diário, valendo 1 ponto a cada "
+        "10 XP e diminuindo até zerar em 100 dias. XP total da vida: {total}.",
 })

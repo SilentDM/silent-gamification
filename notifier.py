@@ -19,7 +19,7 @@ REVIEWS_HOUR = 9                   # review warning: first tick after 09:00 (out
 BRIEFING_LATEST_HOUR = 12          # app opened in the afternoon: skip that day's briefing
 STREAK_MILESTONES = (3, 7, 14, 21, 30, 50, 75, 100, 150, 200, 250, 300, 365, 500, 730, 1000)
 SETTING_LEDGER_SEEN = "tg_ledger_seen"
-SETTING_LEVEL_SEEN = "tg_level_seen"
+SETTING_LEVEL_SEEN = "tg_level_best"   # the highest level reached (the level now moves both ways)
 
 
 def _hhmm(text: str):
@@ -168,7 +168,7 @@ class Notifier:
         stored = db.get_hud_settings().get(SETTING_LEDGER_SEEN)
         if not stored:  # first run: start from now, no backlog of old achievements
             db.set_hud_setting(SETTING_LEDGER_SEEN, str(db.max_ledger_id()))
-            db.set_hud_setting(SETTING_LEVEL_SEEN, str(db.get_user_xp_and_level()[1]))
+            db.set_hud_setting(SETTING_LEVEL_SEEN, str(db.get_level()["level"]))
             return
         seen = int(stored)
         for row_id, source, ref, amount in db.ledger_since(seen):
@@ -186,13 +186,14 @@ class Notifier:
             seen = row_id
         db.set_hud_setting(SETTING_LEDGER_SEEN, str(seen))
 
-        _, level, _, rank = db.get_user_xp_and_level()
-        level_seen = int(db.get_hud_settings().get(SETTING_LEVEL_SEEN) or level)
-        if level > level_seen:
+        lv = db.get_level()
+        level, rank = lv["level"], lv["rank"]
+        best = int(db.get_hud_settings().get(SETTING_LEVEL_SEEN) or 0)
+        if not best:
+            db.set_hud_setting(SETTING_LEVEL_SEEN, str(level))  # first run with the 100-day level: baseline
+        elif level > best:  # only new records: the level goes up and down from day to day now
             if self.assistant.send(messages.t("level_up", level=level, rank=rank)):
                 db.set_hud_setting(SETTING_LEVEL_SEEN, str(level))
-        elif level < level_seen:
-            db.set_hud_setting(SETTING_LEVEL_SEEN, str(level))  # XP undone: celebrate again when regained
 
         streak = db.get_current_streak()
         if streak in STREAK_MILESTONES:
